@@ -1,7 +1,7 @@
 import ApolloAPI
 
 /// A result parsed from GraphQL specification compliant response data.
-public struct ParsedResult<Operation: GraphQLOperation>: Sendable, Hashable {
+public struct ParsedResult<Operation: GraphQLOperation>: Sendable {
 
   /// The parsed ``GraphQLResponse`` for the operation.
   public let result: GraphQLResponse<Operation>
@@ -18,3 +18,6 @@ public struct ParsedResult<Operation: GraphQLOperation>: Sendable, Hashable {
     self.cacheRecords = cacheRecords
   }
 }
+
+extension ParsedResult: Equatable where Operation.Data: Equatable {}
+extension ParsedResult: Hashable where Operation.Data: Hashable {}

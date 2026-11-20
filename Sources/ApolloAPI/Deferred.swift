@@ -11,6 +11,21 @@ public struct Deferred<Fragment: Deferrable> {
     case notExecuted
     /// The deferred value has been received.
     case fulfilled(Fragment)
+
+    public static func == (lhs: State, rhs: State) -> Bool {
+      switch (lhs, rhs) {
+      case (.pending, .pending), (.notExecuted, .notExecuted):
+        return true
+      case (.fulfilled(let lhsFragment), .fulfilled(let rhsFragment)):
+        guard
+          let lhsFragment = lhsFragment as? any Hashable,
+          let rhsFragment = rhsFragment as? any Hashable
+        else { return false }
+        return AnyHashable(lhsFragment) == AnyHashable(rhsFragment)
+      default:
+        return false
+      }
+    }
   }
 
   @_spi(Unsafe)

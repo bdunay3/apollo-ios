@@ -161,7 +161,7 @@ public struct DataDict: Hashable, @unchecked Sendable {
 
 // MARK: - Value Conversion Helpers
 
-public protocol SelectionSetEntityValue: Sendable, Hashable {
+public protocol SelectionSetEntityValue: Sendable {
   /// - Warning: This function is not supported for external use.
   /// Unsupported usage may result in unintended consequences including crashes.
   ///
@@ -205,7 +205,7 @@ extension Optional: SelectionSetEntityValue where Wrapped: SelectionSetEntityVal
   @_spi(Unsafe)
   @inlinable public var _fieldData: DataDict.FieldValue {
     guard case let .some(data) = self else {
-      return Self.none
+      return Optional<DataDict>.none
     }
     return data._fieldData
   }

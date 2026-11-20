@@ -125,7 +125,9 @@ extension SelectionSet {
           guard let objectData = fieldData as? DataDict else {
             preconditionFailure("Expected object data for object field: \(field)")
           }
-          fields[field.responseKey] = selectionSetType.init(_dataDict: objectData)
+          fields[field.responseKey] = _SelectionSetFieldValue(
+            value: selectionSetType.init(_dataDict: objectData)
+          )
 
         case true:
           guard let listData = fieldData as? [DataDict.FieldValue] else {
@@ -150,7 +152,7 @@ extension SelectionSet {
   ) -> [DataDict.FieldValue] {
     return list.map { element -> DataDict.FieldValue in
       if let dataDict = element as? DataDict {
-        return selectionSetType.init(_dataDict: dataDict)
+        return _SelectionSetFieldValue(value: selectionSetType.init(_dataDict: dataDict))
       }
       if let nestedList = element as? [DataDict.FieldValue] {
         return convertElements(of: nestedList, to: selectionSetType) as DataDict.FieldValue
@@ -165,4 +167,26 @@ extension SelectionSet {
     }
   }
 
+}
+
+/// Boxes a ``RootSelectionSet`` so it can be stored as a `DataDict.FieldValue`
+/// (`any Hashable & Sendable`) inside `fieldsForEquality()`, even when the selection set type
+/// itself does not conform to `Hashable` (see the
+/// `selectionSetHashableConformance` codegen option). Hashing and equality are forwarded to the
+/// wrapped value when it is `Hashable`; non-`Hashable` values hash to a constant and are never
+/// equal.
+private struct _SelectionSetFieldValue: @unchecked Sendable, Hashable {
+  let value: any RootSelectionSet
+
+  func hash(into hasher: inout Hasher) {
+    (value as? any Hashable)?.hash(into: &hasher)
+  }
+
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    guard
+      let lhsValue = lhs.value as? any Hashable,
+      let rhsValue = rhs.value as? any Hashable
+    else { return false }
+    return AnyHashable(lhsValue) == AnyHashable(rhsValue)
+  }
 }
